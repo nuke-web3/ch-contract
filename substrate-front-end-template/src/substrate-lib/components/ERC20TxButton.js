@@ -46,26 +46,28 @@ function ERC20TxButton ({
     return fromAcct;
   };
 
-  const txResHandler = ({ status }) =>
-    status.isFinalized
-      ? setStatus(`😉 Finalized. Block hash: ${status.asFinalized.toString()}`)
-      : setStatus(`Current transaction status: ${status.type}`);
-
-  const txErrHandler = err =>
-    setStatus(`😞 Transaction Failed: ${err.toString()}`);
-
   const signedTx = async () => {
     const fromAcct = await getFromAcct();
     const transformed = transformParams(paramFields, inputParams);
-    // transformed can be empty parameters
 
-    // MODIFIED fro ECR20
+    // MODIFIED for ERC20
     const [addressTo, amount] = transformed;
-    const gasLimit = 100000;
-    await handleERC20.tx
+    const gasLimit = 400000;
+
+    const transRes = await handleERC20.tx
       .transfer(0, gasLimit, addressTo, amount)
-      .signAndSend(fromAcct, txResHandler)
-      .catch(txErrHandler);
+      .signAndSend(fromAcct, (result) => {
+        if (result.status.isInBlock) {
+          console.log("In block")
+        } else if (result.status.isFinalized) {
+            if (result.asSuccess){
+              setStatus(`😉 SUCCESS! transferred ${amount}!`)}
+            else {
+              setStatus("😞 Transfer failed! See events for deets->")
+            }
+        }
+      })
+
     setUnsub(() => unsub);
   };
 

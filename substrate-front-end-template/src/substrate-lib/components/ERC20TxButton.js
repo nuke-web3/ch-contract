@@ -22,27 +22,10 @@ function ERC20TxButton ({
   const { api } = useSubstrate();
   const handleERC20 = ERC20(api);
   const [unsub, setUnsub] = useState(null);
-  const [sudoKey, setSudoKey] = useState(null);
 
-  const { palletRpc, callable, inputParams, paramFields } = attrs;
+  const { inputParams, paramFields } = attrs;
 
-  const isQuery = () => type === 'QUERY';
-  const isSudo = () => type === 'SUDO-TX';
-  const isUncheckedSudo = () => type === 'UNCHECKED-SUDO-TX';
-  const isUnsigned = () => type === 'UNSIGNED-TX';
   const isSigned = () => type === 'SIGNED-TX';
-  const isRpc = () => type === 'RPC';
-  const isConstant = () => type === 'CONSTANT';
-
-  const loadSudoKey = () => {
-    (async function () {
-      if (!api) { return; }
-      const sudoKey = await api.query.sudo.key();
-      sudoKey.isEmpty ? setSudoKey(null) : setSudoKey(sudoKey.toString());
-    })();
-  };
-
-  useEffect(loadSudoKey, [api]);
 
   const getFromAcct = async () => {
     const {
@@ -71,72 +54,19 @@ function ERC20TxButton ({
   const txErrHandler = err =>
     setStatus(`😞 Transaction Failed: ${err.toString()}`);
 
-  const sudoTx = async () => {
-    const fromAcct = await getFromAcct();
-    const transformed = transformParams(paramFields, inputParams);
-    // transformed can be empty parameters
-    const txExecute = transformed
-      ? api.tx.sudo.sudo(api.tx[palletRpc][callable](...transformed))
-      : api.tx.sudo.sudo(api.tx[palletRpc][callable]());
-
-    const unsub = txExecute.signAndSend(fromAcct, txResHandler)
-      .catch(txErrHandler);
-    setUnsub(() => unsub);
-  };
-
-  const uncheckedSudoTx = async () => {
-    const fromAcct = await getFromAcct();
-    const txExecute =
-        api.tx.sudo.sudoUncheckedWeight(api.tx[palletRpc][callable](...inputParams), 0);
-
-    const unsub = txExecute.signAndSend(fromAcct, txResHandler)
-      .catch(txErrHandler);
-    setUnsub(() => unsub);
-  };
-
   const signedTx = async () => {
     const fromAcct = await getFromAcct();
     const transformed = transformParams(paramFields, inputParams);
     // transformed can be empty parameters
 
-    // MODIFIDED fro ECR20
-    const [transferTo, amount] = transformed;
-    const gasLimit = -1;
+    // MODIFIED fro ECR20
+    const [addressTo, amount] = transformed;
+    const gasLimit = 100000;
     await handleERC20.tx
-      .transfer(0, gasLimit, transferTo, amount)
-      .signAndSend(fromAcct, txResHandler);
-  };
-
-  const unsignedTx = async () => {
-    const transformed = transformParams(paramFields, inputParams);
-    // transformed can be empty parameters
-    const txExecute = transformed
-      ? api.tx[palletRpc][callable](...transformed)
-      : api.tx[palletRpc][callable]();
-
-    const unsub = await txExecute.send(txResHandler)
+      .transfer(0, gasLimit, addressTo, amount)
+      .signAndSend(fromAcct, txResHandler)
       .catch(txErrHandler);
     setUnsub(() => unsub);
-  };
-
-  const queryResHandler = result =>
-    result.isNone ? setStatus('None') : setStatus(result.toString());
-
-  const query = async () => {
-    const transformed = transformParams(paramFields, inputParams);
-    const unsub = await api.query[palletRpc][callable](...transformed, queryResHandler);
-    setUnsub(() => unsub);
-  };
-
-  const rpc = async () => {
-    const transformed = transformParams(paramFields, inputParams, { emptyAsNull: false });
-    const unsub = await api.rpc[palletRpc][callable](...transformed, queryResHandler);
-    setUnsub(() => unsub);
-  };
-
-  const constant = () => {
-    const result = api.consts[palletRpc][callable];
-    result.isNone ? setStatus('None') : setStatus(result.toString());
   };
 
   const transaction = async () => {
@@ -147,13 +77,7 @@ function ERC20TxButton ({
 
     setStatus('Sending...');
 
-    (isSudo() && sudoTx()) ||
-    (isUncheckedSudo() && uncheckedSudoTx()) ||
-    (isSigned() && signedTx()) ||
-    (isUnsigned() && unsignedTx()) ||
-    (isQuery() && query()) ||
-    (isRpc() && rpc()) ||
-    (isConstant() && constant());
+    isSigned() && signedTx()
   };
 
   const transformParams = (paramFields, inputParams, opts = { emptyAsNull: true }) => {
@@ -209,11 +133,6 @@ function ERC20TxButton ({
     });
   };
 
-  const isSudoer = acctPair => {
-    if (!sudoKey || !acctPair) { return false; }
-    return acctPair.address === sudoKey;
-  };
-
   return (
     <Button
       basic
@@ -221,8 +140,7 @@ function ERC20TxButton ({
       style={style}
       type='submit'
       onClick={transaction}
-      disabled={ disabled || !palletRpc || !callable || !allParamsFilled() ||
-        ((isSudo() || isUncheckedSudo()) && !isSudoer(accountPair)) }
+      disabled={ disabled || !allParamsFilled() }
     >
       {label}
     </Button>
@@ -233,42 +151,11 @@ function ERC20TxButton ({
 ERC20TxButton.propTypes = {
   accountPair: PropTypes.object,
   setStatus: PropTypes.func.isRequired,
-  type: PropTypes.oneOf([
-    'QUERY', 'RPC', 'SIGNED-TX', 'UNSIGNED-TX', 'SUDO-TX', 'UNCHECKED-SUDO-TX',
-    'CONSTANT']).isRequired,
+  type: PropTypes.oneOf(['SIGNED-TX', 'UNSIGNED-TX']).isRequired,
   attrs: PropTypes.shape({
-    palletRpc: PropTypes.string,
-    callable: PropTypes.string,
     inputParams: PropTypes.array,
     paramFields: PropTypes.array
   }).isRequired
 };
 
-function ERC20TxGroupButton (props) {
-  return (
-    <Button.Group>
-      <ERC20TxButton
-        label='Unsigned'
-        type='UNSIGNED-TX'
-        color='grey'
-        {...props}
-      />
-      <Button.Or />
-      <ERC20TxButton
-        label='Signed'
-        type='SIGNED-TX'
-        color='blue'
-        {...props}
-      />
-      <Button.Or />
-      <ERC20TxButton
-        label='SUDO'
-        type='SUDO-TX'
-        color='red'
-        {...props}
-      />
-    </Button.Group>
-  );
-}
-
-export { ERC20TxButton, ERC20TxGroupButton };
+export default ERC20TxButton;

@@ -17,13 +17,6 @@ export default function Main (props) {
       <h1>ERC20 Transfer</h1>
       <Form>
         <Form.Field>
-          <Label basic color='teal'>
-            <Icon name='hand point right' />
-            1 Unit = 1000000000000
-          </Label>
-        </Form.Field>
-        <Form.Field>Transfer more than the existential amount for account with 0 balance</Form.Field>
-        <Form.Field>
           <Input
             fluid
             label='To'
@@ -45,12 +38,10 @@ export default function Main (props) {
         <Form.Field style={{ textAlign: 'center' }}>
           <ERC20TxButton
             accountPair={accountPair}
-            label='Submit'
+            label='ERC20 Transfer'
             type='SIGNED-TX'
             setStatus={setStatus}
             attrs={{
-              palletRpc: null,
-              callable: null,
               inputParams: [addressTo, amount],
               paramFields: [true, true]
             }}

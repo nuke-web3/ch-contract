@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Grid, Label, Icon } from 'semantic-ui-react';
-import { ERC20TxButton } from './substrate-lib/components';
+import { TxButton } from './substrate-lib/components';
 
 export default function Main (props) {
   const [status, setStatus] = useState(null);
@@ -43,7 +43,7 @@ export default function Main (props) {
           />
         </Form.Field>
         <Form.Field style={{ textAlign: 'center' }}>
-          <ERC20TxButton
+          <TxButton
             accountPair={accountPair}
             label='Submit'
             type='SIGNED-TX'

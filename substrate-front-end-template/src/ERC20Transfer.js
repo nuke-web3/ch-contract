@@ -49,8 +49,8 @@ export default function Main (props) {
             type='SIGNED-TX'
             setStatus={setStatus}
             attrs={{
-              palletRpc: 'balances',
-              callable: 'transfer',
+              palletRpc: null,
+              callable: null,
               inputParams: [addressTo, amount],
               paramFields: [true, true]
             }}

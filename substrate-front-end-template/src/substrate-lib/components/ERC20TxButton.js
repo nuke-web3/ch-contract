@@ -52,16 +52,16 @@ function ERC20TxButton ({
 
     // MODIFIED for ERC20
     const [addressTo, amount] = transformed;
-    const gasLimit = 400000;
+    const gasLimit = 1000000; //50% of block?
 
-    const transRes = await handleERC20.tx
+    await handleERC20.tx
       .transfer(0, gasLimit, addressTo, amount)
       .signAndSend(fromAcct, (result) => {
         if (result.status.isInBlock) {
           console.log("In block")
         } else if (result.status.isFinalized) {
             if (result.asSuccess){
-              setStatus(`😉 SUCCESS! transferred ${amount}!`)}
+              setStatus(`😉 SUCCESS!!! See events for deets->!`)}
             else {
               setStatus("😞 Transfer failed! See events for deets->")
             }

@@ -15,8 +15,9 @@ See the `substrate-front-end-template` folder for edits made to interact with th
 - Open up the [Canvas UI](https://paritytech.github.io/canvas-ui/)
   - Follow instructions from [this tutorial](https://substrate.dev/substrate-contracts-workshop/#/0/deploying-your-contract) to **upload** the `/erc20/target/erc20.wasm` file and `/erc20/target/erc20metadata.json` ABI file.
   - alternatively you can use the polkadot.js/apps interface
-- **Deploy** a new contract with `1000` tokens from the `Allice` account.
-
+- **Deploy** a new contract with `1000000000` tokens from the `Alice` account.
+- **COPY THE DEPLOYED INSTANCE HASH/ADDR** and replace the one in `ERC20.js` with this hash:
+  - >const addr = '<your contract hash here>'
 ![deploy-proof.png](./deploy-proof.png)
 
 The Deployed Contract Address should be: `5G7aVUF6RhN1QWtLY7VHa32fSFWaA1oLGuMrjvTLoqcpGqR7`
@@ -32,6 +33,18 @@ Using the `Execute` tab from the UI, use the `Message to Send` = `transfer(to: A
 
 ### Transfer the ERC20 with custom UI
 
-See instructions in `substrate-front-end-template` to bring up the template. Then use the UI to transfer funds!
+Starting with a fresh chain (use `./target/release/node-template/purge-chain --dev -y` ), redelpoy the contract, but this time with 1000000000 tokens. We want to send `Bob` 5000000 this time.
 
-FIXME
+> Be sure that you re-upload the contract via Canvas AND the hash is updated in `ERC20.js`!
+
+See instructions in `substrate-front-end-template` to bring up the template. Then use the UI for the ERC20 to transfer funds!
+
+> Note that the ballances is non functional for the ERC20 at this time. It will not display.
+
+![send-proof.png](./send-proof.png)
+
+You should see a valid event to ContractExecution! If you get a DispatchError (specifically `index 9, error 12`), check if the address of the deployed contact is correct!
+
+Check the balances via the Canvas UI:
+
+![send-proof-2.png](./send-proof-2.png)

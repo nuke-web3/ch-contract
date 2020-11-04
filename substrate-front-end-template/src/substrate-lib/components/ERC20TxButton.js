@@ -52,7 +52,7 @@ function ERC20TxButton ({
 
     // MODIFIED for ERC20
     const [addressTo, amount] = transformed;
-    const gasLimit = 1000000; //50% of block?
+    const gasLimit = 1000000000000; //50% of block?
 
     await handleERC20.tx
       .transfer(0, gasLimit, addressTo, amount)

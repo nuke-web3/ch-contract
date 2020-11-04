@@ -9,14 +9,15 @@ export default function Main (props) {
   const accounts = keyring.getPairs();
   const [balances, setBalances] = useState({});
 
-  const contract = ERC20(api);
+  const handleERC20 = ERC20(api);
 
   useEffect(() => {
     const addresses = keyring.getPairs().map(account => account.address);
     let unsubscribeAll = null;
 
     const getBalanceOf = async (account) => {
-      const balance = await contract.query.balanceOf(account, 0, -1, account);
+      const balance = await handleERC20.query.balanceOf(account, 0, 1000000000000, account);
+      // console.log(balance);
       return balance;
     };
 
@@ -25,7 +26,7 @@ export default function Main (props) {
     });
 
     Promise.all(allBalances).then(balances => {
-      const balancesMap = balances.reduce((acc, { result, address, output }, index) => {
+      const balancesMap = balances.reduce((acc, result, address, output) => {
         if (result.isSuccess) {
           return {
             ...acc,
@@ -41,7 +42,7 @@ export default function Main (props) {
     }).catch(console.error);
 
     return () => unsubscribeAll && unsubscribeAll();
-  }, [api, keyring, setBalances, contract]);
+  }, [api, keyring, setBalances, handleERC20]);
 
   return (
     <Grid.Column>
